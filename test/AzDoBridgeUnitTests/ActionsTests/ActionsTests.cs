@@ -8,7 +8,7 @@ using FluentAssertions;
 using Alexa.NET.Response;
 using Alexa.NET.Request;
 
-namespace AzDoBridgeUnitTests
+namespace AzDoBridge.UnitTests
 {
     public class ActionsTests
     {

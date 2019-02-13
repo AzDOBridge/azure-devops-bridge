@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace AzDoBridgeUnitTests.Utilities
+namespace AzDoBridge.UnitTests
 {
     class TestUtilities
     {

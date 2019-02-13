@@ -4,11 +4,10 @@ using System.Text;
 using Xunit;
 using FluentAssertions;
 using Alexa.NET.Request;
-using AzDoBridgeUnitTests.Utilities;
 using Alexa.NET.Request.Type;
 using AzDoBridge.Models;
 
-namespace AzDoBridgeUnitTests.ModelsTests
+namespace AzDoBridge.UnitTests
 {
     public class ModelsTests
     {
