@@ -9,11 +9,14 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Alexa.NET" Version="1.5.7" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="5.4.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="5.4.0" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.24" />
     <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="15.131.1" />
     <PackageReference Include="Microsoft.TeamFoundationServer.ExtendedClient" Version="15.131.1" />
     <PackageReference Include="Microsoft.VisualStudio.Services.Client" Version="15.131.1" />
     <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" Version="15.131.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.1" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />

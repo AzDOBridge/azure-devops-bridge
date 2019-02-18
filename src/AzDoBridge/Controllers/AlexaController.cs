@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Alexa.NET;
 using Alexa.NET.Request;
@@ -8,11 +9,13 @@ using Alexa.NET.Response;
 using AzDoBridge.Actions;
 using AzDoBridge.Clients;
 using AzDoBridge.Models;
+using AzDoBridge.Helpers;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.WorkItemTracking.Client;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace AzDoBridge.Controllers
 {
@@ -46,8 +49,7 @@ namespace AzDoBridge.Controllers
                 log.LogError($"Failed to fetch work item store: {ex.Message}", ex);
                 throw;
             }
-
-
+            
             // try to read request
             SkillRequest skillRequest;
             try
@@ -60,11 +62,29 @@ namespace AzDoBridge.Controllers
                 log.LogError($"Failed to read skill from request message: {ex.Message}", ex);
                 throw;
             }
-
+            
             switch (skillRequest.Request.Type)
             {
                 case RequestType.LaunchRequest:
-                    return ResponseBuilder.Ask($"Ok!", null);
+                {
+                     //Authenticate and maintain User through session 
+                     SkillResponse skillResponse = null;
+                     if (skillRequest?.Session?.User?.AccessToken != null)
+                     {
+                         ClaimsPrincipal claimsPrincipal = await AADAuthenticator.ValidateTokenAsync(skillRequest.Session.User.AccessToken, log);
+                         if (claimsPrincipal != null)
+                         {
+                             string LoggedUsername = claimsPrincipal.FindFirst("name").Value;
+                             log.LogTrace(LoggedUsername);
+                             skillResponse = ResponseBuilder.Ask($"hello, {LoggedUsername}. How can I help you?", null);
+                             skillResponse.SessionAttributes = new Dictionary<string, object>();
+                             skillResponse.SessionAttributes["LoggedInUser"] = LoggedUsername;                             
+                             skillResponse.Response.ShouldEndSession = false;                             
+                         }
+                     }
+                     else { skillResponse = ResponseBuilder.Tell($"Unautherized"); }
+                     return skillResponse;
+                }
 
                 case RequestType.IntentRequest:
                 {

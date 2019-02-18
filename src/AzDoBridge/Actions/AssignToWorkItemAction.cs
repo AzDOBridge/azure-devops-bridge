@@ -44,6 +44,11 @@ namespace AzDoBridge.Actions
                 // read the assignee
                 string requestAssignToName = intentRequest.GetSlotValue("Fullname");
 
+                if (requestAssignToName == "me") {                    
+                     skillRequest.Session.Attributes.TryGetValue("LoggedInUser",out object LoggedInUser);
+                    requestAssignToName = LoggedInUser as string;
+                }
+
                 // set fields
                 workItem.SetFieldValue(WorkItemFieldNames.AssignedTo, requestAssignToName);
                 workItem.Save();
