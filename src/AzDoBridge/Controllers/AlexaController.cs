@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.WorkItemTracking.Client;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using AzDoBridge.Requests;
 
 namespace AzDoBridge.Controllers
 {
@@ -62,69 +63,19 @@ namespace AzDoBridge.Controllers
                 log.LogError($"Failed to read skill from request message: {ex.Message}", ex);
                 throw;
             }
-            
-            switch (skillRequest.Request.Type)
+
+            if (AzDoBridgeRequestFactory.TryGetRequest(skillRequest.Request.Type, log, out IAzDoBridgeRequest request))
             {
-                case RequestType.LaunchRequest:
-                {
-                     //Authenticate and maintain User through session 
-                     SkillResponse skillResponse = null;
-                     if (skillRequest?.Session?.User?.AccessToken != null)
-                     {
-                         ClaimsPrincipal claimsPrincipal = await AADAuthenticator.ValidateTokenAsync(skillRequest.Session.User.AccessToken, log);
-                         if (claimsPrincipal != null)
-                         {
-                             string LoggedUsername = claimsPrincipal.FindFirst("name").Value;
-                             log.LogTrace(LoggedUsername);
-                             skillResponse = ResponseBuilder.Ask($"hello, {LoggedUsername}. How can I help you?", null);
-                             skillResponse.SessionAttributes = new Dictionary<string, object>();
-                             skillResponse.SessionAttributes["LoggedInUser"] = LoggedUsername;                             
-                             skillResponse.Response.ShouldEndSession = false;                             
-                         }
-                     }
-                     else { skillResponse = ResponseBuilder.Tell($"Unautherized"); }
-                     return skillResponse;
-                }
-
-                case RequestType.IntentRequest:
-                {
-                    if (!(skillRequest.Request is IntentRequest intentRequest))
-                    {
-                        throw new InvalidOperationException(
-                            $"Expected type {typeof(IntentRequest)} but got {skillRequest.Request.GetType()}");
-                    }
-
-                    // First step: check for cancel
-
-                    string intentName = intentRequest.Intent.Name;
-                    if (intentRequest.Intent.Name.Equals("AMAZON.CancelIntent", StringComparison.OrdinalIgnoreCase))
-                    {
-                        log.LogTrace($"Cancel Intent");
-                        return ResponseBuilder.Tell("Goodbye then!");
-                    }
-
-                    // Try to read the affected item
-                    //    and run AzDoBridge actions
-
-                    if (AzDoBridgeActionFactory.TryGetAction(intentName, log, out IAzDoBridgeAction action))
-                    {
-                        return action.Run(workItemStore, skillRequest);
-                    }
-
-
-                    log.LogTrace($"intent not recognized");
-                    return ResponseBuilder.Ask("IntentRequest Not Recognized, you can say, set item ID to Item State", null);
-                }
-
-                default:
-                {
-                    log.LogTrace($"No Speech Detected");
-                    return ResponseBuilder.Tell("No Speech Detected");
-                }
+                return await request.Handle(workItemStore, skillRequest).ConfigureAwait(false);
             }
 
-        }
+            log.LogTrace($"No Speech Detected");
+            return ResponseBuilder.Tell("No Speech Detected");
+
+            }
+
     }
 }
+
 
 

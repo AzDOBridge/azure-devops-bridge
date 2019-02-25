@@ -15,36 +15,34 @@ using System.Net.Http.Headers;
 
 namespace AzDoBridge.Helpers
 {
-    public static class AADAuthenticator
+    public class AADAuthenticator
     {
-        private static readonly string ISSUER = Environment.GetEnvironmentVariable("AzureSecurity:Issuer", EnvironmentVariableTarget.Process);
-        private static readonly string AUDIENCE = Environment.GetEnvironmentVariable("AzureSecurity:Audience", EnvironmentVariableTarget.Process);
-        private static readonly string AudienceID = Environment.GetEnvironmentVariable("AzureSecurity:AudienceID", EnvironmentVariableTarget.Process);
-        private static readonly IConfigurationManager<OpenIdConnectConfiguration> _configurationManager;
+        public IConfigurationManager<OpenIdConnectConfiguration> ConfigurationManager { get; set; }
 
-        static AADAuthenticator()
+        readonly ILogger Log;
+
+        public AADAuthenticator(string issuer,ILogger log)
         {
-            HttpDocumentRetriever documentRetriever = new HttpDocumentRetriever();
-            documentRetriever.RequireHttps = ISSUER.StartsWith("https://");
+            Log = log;
+            HttpDocumentRetriever documentRetriever = new HttpDocumentRetriever()
+            { RequireHttps = issuer.StartsWith("https://") };           
 
-            _configurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
-                $"{ISSUER}/.well-known/openid-configuration",
+            ConfigurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
+                $"{issuer}/.well-known/openid-configuration",
                 new OpenIdConnectConfigurationRetriever(),
                 documentRetriever
             );
-        }
+        }              
 
-        public static async Task<ClaimsPrincipal> ValidateTokenAsync(string value, ILogger log)
+        public async Task<ClaimsPrincipal> ValidateTokenAsync(string value, string issuer, string audience, string audienceid)
         {
-            log.LogTrace($"Validating User ... ");           
-            OpenIdConnectConfiguration config = await GetOpenIDConfig(_configurationManager, log);
-            string issuer = ISSUER;
-            string audience = AUDIENCE;
-
+            Log.LogTrace("Validating User ... ");           
+            OpenIdConnectConfiguration config = await GetOpenIDConfig(ConfigurationManager);
+         
             TokenValidationParameters validationParameter = new TokenValidationParameters()
             {
                 RequireSignedTokens = true,
-                ValidAudiences = new[] { audience, AudienceID },
+                ValidAudiences = new[] { audience, audienceid },
                 ValidateAudience = true,
                 ValidIssuers = new[] { issuer, $"{issuer}v2.0" },
                 ValidateIssuer = true,
@@ -65,26 +63,34 @@ namespace AzDoBridge.Helpers
                 }
                 catch (SecurityTokenSignatureKeyNotFoundException)
                 {
-                    _configurationManager.RequestRefresh();
+                    ConfigurationManager.RequestRefresh();
                     tries++;
                 }
                 catch (SecurityTokenException ex)
                 {
-                    log.LogTrace($"token exception:{ex.Message} ");
+                    Log.LogTrace($"token exception:{ex.Message} ");
                     return null;
                 }
             }
 
             return result;
         }
-        static async Task<OpenIdConnectConfiguration> GetOpenIDConfig(IConfigurationManager<OpenIdConnectConfiguration> _configurationManager, ILogger log)
+        async Task<OpenIdConnectConfiguration> GetOpenIDConfig(IConfigurationManager<OpenIdConnectConfiguration> configurationManager)
         {
             OpenIdConnectConfiguration config = null;
+            CancellationTokenSource cs = new CancellationTokenSource(3000);
             try
             {
-                config = await _configurationManager.GetConfigurationAsync(CancellationToken.None);
+                config = await configurationManager.GetConfigurationAsync(cs.Token);
             }
-            catch (Exception e) { log.LogError($"OpenID Validaiton Exception: {e.Message}"); }
+            catch (OperationCanceledException oce)
+            {
+                Log.LogError($"OpenID Validaiton timeout : {oce.Message}");
+            }
+            catch (Exception e)
+            {
+                Log.LogError($"OpenID Validaiton Exception: {e.Message}", e);
+            }
             return config;
         }
     }
