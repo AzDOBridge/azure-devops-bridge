@@ -85,7 +85,7 @@ namespace AzDoBridge.Helpers
             }
             catch (OperationCanceledException oce)
             {
-                Log.LogError($"OpenID Validaiton timeout : {oce.Message}");
+                Log.LogError($"OpenID Validaiton Cancelled due to delay timeout : {oce.Message}");
             }
             catch (Exception e)
             {
