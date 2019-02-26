@@ -27,7 +27,7 @@ namespace AzDoBridge.UnitTests
             ItemID.Should().Equals(slot.Value);
         }
         [Theory]
-        [InlineData(RequestType.IntentRequest)]
+        [InlineData(nameof(AzDoBridgeRequests.IntentRequest))]
         public void Can_Determine_Request_Type(string requestType)
         {
             //IntentRequest File

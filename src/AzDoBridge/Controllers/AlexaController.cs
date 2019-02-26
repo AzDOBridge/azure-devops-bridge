@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Alexa.NET;
 using Alexa.NET.Request;
@@ -8,11 +9,14 @@ using Alexa.NET.Response;
 using AzDoBridge.Actions;
 using AzDoBridge.Clients;
 using AzDoBridge.Models;
+using AzDoBridge.Helpers;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.WorkItemTracking.Client;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using AzDoBridge.Requests;
 
 namespace AzDoBridge.Controllers
 {
@@ -46,8 +50,7 @@ namespace AzDoBridge.Controllers
                 log.LogError($"Failed to fetch work item store: {ex.Message}", ex);
                 throw;
             }
-
-
+            
             // try to read request
             SkillRequest skillRequest;
             try
@@ -61,50 +64,18 @@ namespace AzDoBridge.Controllers
                 throw;
             }
 
-            switch (skillRequest.Request.Type)
+            if (AzDoBridgeRequestFactory.TryGetRequest(skillRequest.Request.Type, log, out IAzDoBridgeRequest request))
             {
-                case RequestType.LaunchRequest:
-                    return ResponseBuilder.Ask($"Ok!", null);
-
-                case RequestType.IntentRequest:
-                {
-                    if (!(skillRequest.Request is IntentRequest intentRequest))
-                    {
-                        throw new InvalidOperationException(
-                            $"Expected type {typeof(IntentRequest)} but got {skillRequest.Request.GetType()}");
-                    }
-
-                    // First step: check for cancel
-
-                    string intentName = intentRequest.Intent.Name;
-                    if (intentRequest.Intent.Name.Equals("AMAZON.CancelIntent", StringComparison.OrdinalIgnoreCase))
-                    {
-                        log.LogTrace($"Cancel Intent");
-                        return ResponseBuilder.Tell("Goodbye then!");
-                    }
-
-                    // Try to read the affected item
-                    //    and run AzDoBridge actions
-
-                    if (AzDoBridgeActionFactory.TryGetAction(intentName, log, out IAzDoBridgeAction action))
-                    {
-                        return action.Run(workItemStore, skillRequest);
-                    }
-
-
-                    log.LogTrace($"intent not recognized");
-                    return ResponseBuilder.Ask("IntentRequest Not Recognized, you can say, set item ID to Item State", null);
-                }
-
-                default:
-                {
-                    log.LogTrace($"No Speech Detected");
-                    return ResponseBuilder.Tell("No Speech Detected");
-                }
+                return await request.Handle(workItemStore, skillRequest).ConfigureAwait(false);
             }
 
-        }
+            log.LogTrace($"No Speech Detected");
+            return ResponseBuilder.Tell("No Speech Detected");
+
+            }
+
     }
 }
+
 
 
