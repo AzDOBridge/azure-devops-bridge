@@ -3,6 +3,7 @@ using Alexa.NET;
 using Alexa.NET.Request;
 using Alexa.NET.Request.Type;
 using Alexa.NET.Response;
+using AzDoBridge.Clients;
 using AzDoBridge.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.WorkItemTracking.Client;
@@ -15,7 +16,7 @@ namespace AzDoBridge.Actions
         {
         }
 
-        public override SkillResponse Run(WorkItemStore workItemStore, SkillRequest skillRequest)
+        public override SkillResponse Run(AzureDevOpsClient azureDevOpsClient, SkillRequest skillRequest)
         {
 
             try
@@ -35,6 +36,8 @@ namespace AzDoBridge.Actions
                 }
 
                 // load affected work item
+              
+                WorkItemStore workItemStore = azureDevOpsClient.FetchWorkItemStore();
                 WorkItem workItem = workItemStore.GetWorkItem(workItemId);
                 if (workItem is null)
                 {

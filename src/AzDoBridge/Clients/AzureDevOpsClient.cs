@@ -8,23 +8,42 @@ namespace AzDoBridge.Clients
 {
     public class AzureDevOpsClient
     {
+        protected readonly string Username;
+        protected readonly string PersonalAccessToken;
+        Lazy<TfsTeamProjectCollection> _tfsTeamProjectCollection;
         public AzureDevOpsClient(Uri hostname, string username, string personalAccessToken)
         {
-            TfsTeamProjectCollection = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(hostname);
-            TfsTeamProjectCollection.ClientCredentials = new VssCredentials(new VssBasicCredential(username, personalAccessToken));
+            Username = username;
+            PersonalAccessToken = personalAccessToken;
+            _tfsTeamProjectCollection = new Lazy<TfsTeamProjectCollection>(
+                () => {
+
+                    return TfsTeamProjectCollectionFactory.GetTeamProjectCollection(hostname);}
+                );
         }
-
-        public TfsTeamProjectCollection TfsTeamProjectCollection { get; set; }
-
+        public TfsTeamProjectCollection MyTfsTeamProjectCollection
+        {
+            get
+            {
+                return _tfsTeamProjectCollection.Value;
+            }
+        }
         public async Task<WorkItemStore> FetchWorkItemStoreAsync()
         {
             return await Task.Run(() =>
-            {
-                TfsTeamProjectCollection.Authenticate();
+            {                
+                MyTfsTeamProjectCollection.ClientCredentials = new VssCredentials(new VssBasicCredential(Username, PersonalAccessToken));
+                MyTfsTeamProjectCollection.Authenticate();
+                return MyTfsTeamProjectCollection.GetService<WorkItemStore>();
 
-                return TfsTeamProjectCollection.GetService<WorkItemStore>();
             }).ConfigureAwait(false);
-
+        }
+        public WorkItemStore FetchWorkItemStore()
+        {
+            MyTfsTeamProjectCollection.ClientCredentials = new VssCredentials(new VssBasicCredential(Username, PersonalAccessToken));
+            MyTfsTeamProjectCollection.Authenticate();
+            return MyTfsTeamProjectCollection.GetService<WorkItemStore>();
+       
         }
     }
 }

@@ -29,8 +29,8 @@ namespace AzDoBridge.Controllers
             log.LogTrace($"Controller Started");
 
 
-
-            WorkItemStore workItemStore;
+            //WorkItemStore workItemStore;
+            AzureDevOpsClient azureDevOpsClient;
             try
             {
                 // Loading Environment Information
@@ -39,18 +39,15 @@ namespace AzDoBridge.Controllers
                 string azureDevopsAccessToken = Environment.GetEnvironmentVariable("AzureDevOps:PAT", EnvironmentVariableTarget.Process);
 
                 // Load Clients
-                AzureDevOpsClient azureDevOpsClient = new AzureDevOpsClient(new Uri(azureDevopsHostname), azureDevopsUsername, azureDevopsAccessToken);
+                azureDevOpsClient = new AzureDevOpsClient(new Uri(azureDevopsHostname), azureDevopsUsername, azureDevopsAccessToken);              
 
-
-                workItemStore = await azureDevOpsClient.FetchWorkItemStoreAsync()
-                    .ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                log.LogError($"Failed to fetch work item store: {ex.Message}", ex);
+                log.LogError($"Failed to construct azureDevOpsClient : {ex.Message}", ex);
                 throw;
             }
-            
+
             // try to read request
             SkillRequest skillRequest;
             try
@@ -66,7 +63,7 @@ namespace AzDoBridge.Controllers
 
             if (AzDoBridgeRequestFactory.TryGetRequest(skillRequest.Request.Type, log, out IAzDoBridgeRequest request))
             {
-                return await request.Handle(workItemStore, skillRequest).ConfigureAwait(false);
+                return await request.Handle(azureDevOpsClient, skillRequest).ConfigureAwait(false);
             }
 
             log.LogTrace($"No Speech Detected");

@@ -10,6 +10,7 @@ using System.Security.Claims;
 using AzDoBridge.Helpers;
 using System.Threading.Tasks;
 using Microsoft.TeamFoundation.WorkItemTracking.Client;
+using AzDoBridge.Clients;
 
 namespace AzDoBridge.Requests
 {
@@ -20,7 +21,7 @@ namespace AzDoBridge.Requests
             ILogger Log = log;
         }
 
-        public override async Task <SkillResponse> Handle(WorkItemStore workItemStore, SkillRequest skillRequest)
+        public override async Task <SkillResponse> Handle(AzureDevOpsClient azureDevOpsClient, SkillRequest skillRequest)
         {
             try
             {
@@ -48,6 +49,7 @@ namespace AzDoBridge.Requests
                     }
                 }
                 else { skillResponse = ResponseBuilder.Tell($"Unautherized"); }
+
                 return skillResponse;
             }
             catch (Exception e)

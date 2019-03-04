@@ -3,6 +3,7 @@ using Alexa.NET.Request;
 using Alexa.NET.Request.Type;
 using Alexa.NET.Response;
 using AzDoBridge.Actions;
+using AzDoBridge.Clients;
 using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.WorkItemTracking.Client;
 using System;
@@ -19,7 +20,7 @@ namespace AzDoBridge.Requests
         {
 
         }
-        public override async Task <SkillResponse> Handle(WorkItemStore workItemStore, SkillRequest skillRequest)
+        public override async Task <SkillResponse> Handle(AzureDevOpsClient azureDevOpsClient, SkillRequest skillRequest)
         {
             if (!(skillRequest.Request is IntentRequest intentRequest))
             {
@@ -47,7 +48,7 @@ namespace AzDoBridge.Requests
             {
                 return await Task.Run(() =>
                 {              
-                    return action.Run(workItemStore, skillRequest);
+                    return action.Run(azureDevOpsClient, skillRequest);
                 }).ConfigureAwait(false);
 
             }

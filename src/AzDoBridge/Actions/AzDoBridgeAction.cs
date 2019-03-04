@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Alexa.NET.Request;
 using Alexa.NET.Response;
+using AzDoBridge.Clients;
 using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.WorkItemTracking.Client;
 
@@ -18,6 +19,6 @@ namespace AzDoBridge.Actions
             Log = log;
         }
 
-        public abstract SkillResponse Run(WorkItemStore workItemStore, SkillRequest skillRequest);
+        public abstract SkillResponse Run(AzureDevOpsClient azureDevOpsClient, SkillRequest skillRequest);
     }
 }
