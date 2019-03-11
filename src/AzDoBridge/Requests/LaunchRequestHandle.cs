@@ -15,10 +15,9 @@ using AzDoBridge.Clients;
 namespace AzDoBridge.Requests
 {
     public class LaunchRequestHandle : AzDoBridgeRequest
-    {
+    {        
         public LaunchRequestHandle(ILogger log) : base(log)
-        {
-            ILogger Log = log;
+        {            
         }
 
         public override async Task <SkillResponse> Handle(AzureDevOpsClient azureDevOpsClient, SkillRequest skillRequest)
@@ -48,7 +47,7 @@ namespace AzDoBridge.Requests
                         skillResponse.Response.ShouldEndSession = false;
                     }
                 }
-                else { skillResponse = ResponseBuilder.Tell($"Unautherized"); }
+                else { skillResponse = ResponseBuilder.Tell($"Unauthorized"); }
 
                 return skillResponse;
             }

@@ -6,10 +6,14 @@ using Microsoft.VisualStudio.Services.Common;
 
 namespace AzDoBridge.Clients
 {
-    public class AzureDevOpsClient
+    public class AzureDevOpsClient : IAzureDevOpsClient
     {
-        protected readonly string Username;
-        protected readonly string PersonalAccessToken;
+        string _username;
+        string _personalAccessToken;
+
+        protected string Username { get { return _username; } set { _username = value; } }
+        protected string PersonalAccessToken { get { return _personalAccessToken; } set { _personalAccessToken = value; } }
+
         Lazy<TfsTeamProjectCollection> _tfsTeamProjectCollection;
         public AzureDevOpsClient(Uri hostname, string username, string personalAccessToken)
         {
