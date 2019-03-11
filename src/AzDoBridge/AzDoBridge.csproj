@@ -3,10 +3,6 @@
     <TargetFramework>net461</TargetFramework>
     <AzureFunctionsVersion>v1</AzureFunctionsVersion>
   </PropertyGroup>
-  <PropertyGroup>
-    <LangVersion>8.0</LangVersion>
-    <NullableReferenceTypes>true</NullableReferenceTypes>
-  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Alexa.NET" Version="1.5.7" />
     <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="5.4.0" />
