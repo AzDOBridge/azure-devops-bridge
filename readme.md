@@ -51,3 +51,6 @@ See [License](LICENSE)
 ## News
 
 * [ALEXA, OPEN AZURE DEVOPS](https://writeabout.net/2019/01/10/alexa-open-azure-devops/)
+
+## Build Status
+[![Build Status](https://dev.azure.com/devoteam-alegri/AzDevSkill/_apis/build/status/AzDOBridge.azure-devops-bridge?branchName=master)](https://dev.azure.com/devoteam-alegri/AzDevSkill/_build/latest?definitionId=2&branchName=master)
