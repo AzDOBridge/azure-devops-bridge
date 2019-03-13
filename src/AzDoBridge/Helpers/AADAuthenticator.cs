@@ -38,7 +38,7 @@ namespace AzDoBridge.Helpers
         {
             Log.LogTrace("Validating User ... ");           
             OpenIdConnectConfiguration config = await GetOpenIDConfig(ConfigurationManager);
-         
+            Log.LogTrace("Got ID Config ... ");
             TokenValidationParameters validationParameter = new TokenValidationParameters()
             {
                 RequireSignedTokens = true,
@@ -58,6 +58,7 @@ namespace AzDoBridge.Helpers
             {
                 try
                 {
+                    Log.LogTrace("Try Handle Validate Token ... ");
                     JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
                     result = handler.ValidateToken(value, validationParameter, out var token);
                 }

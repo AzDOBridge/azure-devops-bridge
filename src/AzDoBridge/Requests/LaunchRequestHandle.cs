@@ -31,9 +31,9 @@ namespace AzDoBridge.Requests
                     string AADAuthenticatorIssuer = Environment.GetEnvironmentVariable("AzureSecurity:Issuer", EnvironmentVariableTarget.Process);
                     string AADAuthenticatorAudience = Environment.GetEnvironmentVariable("AzureSecurity:Audience", EnvironmentVariableTarget.Process);
                     string AADAuthenticatorAudienceId = Environment.GetEnvironmentVariable("AzureSecurity:AudienceID", EnvironmentVariableTarget.Process);
-
+                    Log.LogTrace("Loaded Config ..");
                     AADAuthenticator authenticator = new AADAuthenticator(AADAuthenticatorIssuer, Log);
-
+                    Log.LogTrace("Trying to validate  ... ");
                     ClaimsPrincipal claimsPrincipal = await authenticator.ValidateTokenAsync(skillRequest.Session.User.AccessToken, AADAuthenticatorIssuer, AADAuthenticatorAudience, AADAuthenticatorAudienceId);
 
                     if (claimsPrincipal != null)
@@ -47,7 +47,7 @@ namespace AzDoBridge.Requests
                         skillResponse.Response.ShouldEndSession = false;
                     }
                 }
-                else { skillResponse = ResponseBuilder.Tell($"Unautherized"); }
+                else { skillResponse = ResponseBuilder.Tell($"Unauthorized"); }
                 return skillResponse;
             }
             catch (Exception e)
